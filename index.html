@@ -55,24 +55,25 @@ button, input { font: inherit; color: inherit; }
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
 .setup-inner { max-width: 760px; margin: 0 auto; display: grid; gap: 32px; }
-.setup-head { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
-.head-text { min-width: 0; }
+/* Setup page is centred: header, labels, typed team name, summary and hint. */
+.setup-head { display: grid; gap: 22px; }
+.brand-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-width: 0; }
+.head-text { min-width: 0; text-align: center; display: grid; gap: 4px; }
 /* Logo lockup: SRL | ETH, shared by the setup header and the run screen. */
 .lockup { display: flex; align-items: center; gap: clamp(12px, 1.6vw, 20px); min-width: 0; }
 .lockup img { display: block; height: auto; min-width: 0; }
 .lockup .sep { flex: none; width: 1.5px; align-self: stretch; background: var(--ink); opacity: 0.55; }
-.lockup-setup { margin-bottom: 22px; }
 .lockup-setup .lk-srl { width: 170px; }
 .lockup-setup .lk-eth { width: 150px; }
 @media (max-width: 480px) { .lockup-setup .lk-srl { width: 120px; } .lockup-setup .lk-eth { width: 104px; } }
-.cube-logo { flex: none; width: clamp(76px, 14vw, 120px); height: auto; }
-.eyebrow {
-  margin: 0; color: var(--accent); font-weight: 600; font-size: 13px;
-  letter-spacing: 0.08em; text-transform: uppercase;
-}
+.cube-logo { flex: none; width: clamp(48px, 8vw, 72px); height: auto; }
 .setup h1 {
-  margin: 6px 0 8px; font-family: var(--f-display); font-weight: 700;
-  font-size: clamp(32px, 5vw, 48px); line-height: 1.05; text-wrap: balance;
+  margin: 0; font-family: var(--f-display); font-weight: 700;
+  font-size: clamp(26px, 3.6vw, 32px); line-height: 1.15; text-wrap: balance;
+}
+.subhead {
+  margin: 0; font-weight: 600; font-size: 16px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--muted);
 }
 form { display: grid; gap: 28px; }
 fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
@@ -80,14 +81,15 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .label {
   font-weight: 600; font-size: 13px; letter-spacing: 0.08em;
   text-transform: uppercase; color: var(--muted); padding: 0;
+  text-align: center; width: 100%;
 }
 #team {
-  width: 100%; padding: 16px 18px; font-family: var(--f-display); font-weight: 700;
+  width: 100%; padding: 16px 18px; font-family: var(--f-display); font-weight: 700; text-align: center;
   font-size: clamp(24px, 4vw, 34px); border: 2px solid var(--ink); border-radius: 10px;
   background: var(--paper);
 }
 #team::placeholder { color: #a3a8b5; font-weight: 500; }
-.error { margin: 0; color: var(--stop); font-weight: 500; }
+.error { margin: 0; color: var(--stop); font-weight: 500; text-align: center; }
 
 .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .seg input { position: absolute; opacity: 0; pointer-events: none; }
@@ -106,7 +108,7 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .seg input:focus-visible + label { outline: 3px solid var(--accent); outline-offset: 3px; }
 
 .summary {
-  display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px;
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 14px;
   padding: 14px 16px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line);
   font-variant-numeric: tabular-nums;
 }
@@ -119,7 +121,7 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
   font-family: var(--f-display); font-weight: 700; font-size: 22px; letter-spacing: 0.01em;
 }
 .start:active { transform: translateY(1px); }
-.hint { margin: 0; color: var(--muted); font-size: 13px; }
+.hint { margin: 0; color: var(--muted); font-size: 13px; text-align: center; }
 .hint kbd {
   font-family: var(--f-digits); font-size: 12px; padding: 1px 6px;
   border: 1px solid var(--line); border-radius: 4px; background: var(--chip);
@@ -249,16 +251,18 @@ fieldset[disabled] .seg label { opacity: 0.4; cursor: not-allowed; }
 <main id="setup" class="setup">
   <div class="setup-inner">
     <header class="setup-head">
-      <div class="head-text">
+      <div class="brand-row">
         <div class="lockup lockup-setup">
           <img class="lk-srl" src="assets/srl-logo.png" alt="Soft Robotics Laboratory">
           <span class="sep" aria-hidden="true"></span>
           <img class="lk-eth" src="assets/eth-logo.png" alt="ETH Zürich">
         </div>
-        <p class="eyebrow">Real World Robotics · Task 1 · Demo day</p>
-        <h1>Showcase timer</h1>
+        <img class="cube-logo" src="assets/hand-cube.png" alt="Real World Robotics">
       </div>
-      <img class="cube-logo" src="assets/hand-cube.png" alt="Robot hand holding a cube">
+      <div class="head-text">
+        <h1>Real World Robotics</h1>
+        <p class="subhead">Task 1 Demo Day</p>
+      </div>
     </header>
 
     <form id="setupForm" novalidate>
