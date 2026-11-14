@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>RWR Showcase Timer</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Ccircle cx='16' cy='18' r='12' fill='white' stroke='%230b0c0f' stroke-width='3'/%3E%3Cpath d='M16 18V11' stroke='%23c8102e' stroke-width='3' stroke-linecap='round'/%3E%3Cpath d='M12 3h8' stroke='%230b0c0f' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -231,7 +232,7 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
         <legend class="label">Subtask</legend>
         <div class="seg">
           <input type="radio" name="subtask" id="st1" value="1" checked>
-          <label for="st1"><span class="big">1</span><span class="sub">Joint ID + RL tuning</span></label>
+          <label for="st1"><span class="big">1</span><span class="sub">Proprioception</span></label>
           <input type="radio" name="subtask" id="st2" value="2">
           <label for="st2"><span class="big">2</span><span class="sub">Exteroception</span></label>
           <input type="radio" name="subtask" id="st3" value="3">
@@ -284,7 +285,7 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
     <div class="task">
       <span class="tag">Subtask</span>
       <span class="val" id="dSub">1</span>
-      <span class="name" id="dSubName">Joint ID + RL tuning</span>
+      <span class="name" id="dSubName">Proprioception</span>
     </div>
     <div class="task right">
       <span class="tag">Run</span>
@@ -311,7 +312,7 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 
 <script>
 (() => {
-  const SUBTASKS = { 1: "Joint ID + RL tuning", 2: "Exteroception", 3: "All-axis rotation" };
+  const SUBTASKS = { 1: "Proprioception", 2: "Exteroception", 3: "All-axis rotation" };
   const WARN_MS = 30000, STOP_MS = 10000;
   const $ = (id) => document.getElementById(id);
   const form = $("setupForm"), setup = $("setup"), run = $("run");
@@ -459,8 +460,9 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
   function fitTeam() {
     if (run.hidden) return;
     const el = $("dTeam"), box = $("teamBand"), cs = getComputedStyle(box);
-    const W = box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-    const H = box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+    // Floor to whole pixels: scrollWidth/offsetWidth are rounded integers, so a fractional limit never "fits".
+    const W = Math.floor(box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight));
+    const H = Math.floor(box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom));
     if (W <= 0 || H <= 0) return;
 
     const search = (fits) => {
