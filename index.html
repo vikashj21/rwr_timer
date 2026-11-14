@@ -117,6 +117,17 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .seg-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 .seg .big.word { font-size: 20px; overflow-wrap: anywhere; }
 fieldset[disabled] .seg label { opacity: 0.4; cursor: not-allowed; }
+.custom-row {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px;
+  padding: 14px 16px; border: 2px solid var(--accent); border-radius: 10px; background: var(--chip);
+}
+.custom-row input {
+  width: 2.4em; padding: 6px 4px; text-align: center;
+  font-family: var(--f-digits); font-weight: 700; font-size: 34px; font-variant-numeric: tabular-nums;
+  border: 2px solid var(--ink); border-radius: 8px; background: var(--paper);
+}
+.custom-row .unit { color: var(--muted); font-weight: 600; }
+.custom-row .colon { font-family: var(--f-digits); font-weight: 700; font-size: 30px; padding-inline: 4px; }
 @media (max-width: 640px) { .seg-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 480px) {
   .seg label { min-height: 64px; padding: 10px; }
@@ -266,11 +277,19 @@ fieldset[disabled] .seg label { opacity: 0.4; cursor: not-allowed; }
         <div class="seg">
           <input type="radio" name="dur" id="d1" value="1" checked>
           <label for="d1"><span class="big">1 min</span></label>
-          <input type="radio" name="dur" id="d2" value="2">
-          <label for="d2"><span class="big">2 min</span></label>
           <input type="radio" name="dur" id="d5" value="5">
           <label for="d5"><span class="big">5 min</span></label>
+          <input type="radio" name="dur" id="dC" value="c">
+          <label for="dC"><span class="big">Custom</span></label>
         </div>
+        <div class="custom-row" id="customRow" hidden>
+          <input id="cMin" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" value="3" aria-label="Minutes" autocomplete="off">
+          <span class="unit">min</span>
+          <span class="colon" aria-hidden="true">:</span>
+          <input id="cSec" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" value="00" aria-label="Seconds" autocomplete="off">
+          <span class="unit">sec</span>
+        </div>
+        <p class="error" id="timeError" hidden>Set a custom time above 0:00 to start.</p>
       </fieldset>
 
       <div class="summary" aria-live="polite">
@@ -356,9 +375,27 @@ fieldset[disabled] .seg label { opacity: 0.4; cursor: not-allowed; }
     $("sumRunWrap").hidden = pres;
     $("runField").disabled = pres;
     $("startBtn").textContent = pres ? "Start presentation" : "Start run";
-    $("sumDur").textContent = fmt(checked("dur") * 60000);
+    $("customRow").hidden = checkedStr("dur") !== "c";
+    $("sumDur").textContent = fmt(durMs());
     if (t) $("teamError").hidden = true;
+    if (durMs() > 0) $("timeError").hidden = true;
   }
+
+  // ---------- timer length: 1 min, 5 min or custom mm:ss ----------
+  const two = (n) => String(n).padStart(2, "0");
+  const digits = (el) => parseInt(el.value, 10) || 0;
+  const customMs = () => (digits($("cMin")) * 60 + Math.min(59, digits($("cSec")))) * 1000;
+  const durMs = () => (checkedStr("dur") === "c" ? customMs() : checked("dur") * 60000);
+  const durLabel = (ms) => { const t = Math.round(ms / 1000), m = Math.floor(t / 60), s = t % 60; return s ? `${m}:${two(s)} min` : `${m} min`; };
+  ["cMin", "cSec"].forEach((id) => {
+    const el = $(id);
+    el.addEventListener("input", () => { el.value = el.value.replace(/\D/g, "").slice(0, 2); });
+    el.addEventListener("focus", () => el.select());
+    el.addEventListener("blur", () => { el.value = id === "cSec" ? two(Math.min(59, digits(el))) : String(digits(el)); updateSummary(); });
+  });
+  $("dC").addEventListener("change", () => { $("customRow").hidden = false; $("cMin").focus(); });
+  const savedCustom = (store.get("rwr-timer-custom") || "").split(":");
+  if (savedCustom.length === 2) { $("cMin").value = String(parseInt(savedCustom[0], 10) || 0); $("cSec").value = two(Math.min(59, parseInt(savedCustom[1], 10) || 0)); }
   function applyDefaultTimer() { setRadio("dur", DEFAULT_MIN[checkedStr("subtask")] || 1); }
   form.querySelectorAll('input[name="subtask"]').forEach((r) => r.addEventListener("change", applyDefaultTimer));
   form.addEventListener("input", updateSummary);
@@ -376,7 +413,9 @@ fieldset[disabled] .seg label { opacity: 0.4; cursor: not-allowed; }
     const team = $("team").value.trim();
     if (!team) { $("teamError").hidden = false; $("team").focus(); return; }
     S.team = team; S.subtask = checkedStr("subtask"); S.run = checked("run");
-    S.durMs = checked("dur") * 60000;
+    S.durMs = durMs();
+    if (S.durMs <= 0) { $("timeError").hidden = false; $("cMin").focus(); return; }
+    if (checkedStr("dur") === "c") store.set("rwr-timer-custom", digits($("cMin")) + ":" + Math.min(59, digits($("cSec"))));
     store.set("rwr-timer-team", team); store.set("rwr-timer-subtask", String(S.subtask));
     unlockAudio();
     showRun();
@@ -395,7 +434,7 @@ fieldset[disabled] .seg label { opacity: 0.4; cursor: not-allowed; }
     $("dRunTag").textContent = pres ? "Timer" : "Run";
     $("dRunVal").hidden = pres;
     $("dRun").textContent = S.run;
-    $("dDur").textContent = (S.durMs / 60000) + " min";
+    $("dDur").textContent = durLabel(S.durMs);
     $("bNext").hidden = pres;
     setup.hidden = true; run.hidden = false;
     enterFullscreen();

@@ -2,7 +2,7 @@
 
 Full-screen run timer for the Real World Robotics Task 1 demo day (Sim2Real cube rotation on the ORCA v2 hand).
 
-- Setup screen: team name, Subtask 1 / 2 / 3 or Presentation, Run 1 / 2 / 3, timer 1 / 2 / 5 min. Picking a subtask sets the timer to 1 min, picking Presentation sets it to 5 min (both can be changed by hand).
+- Setup screen: team name, Subtask 1 / 2 / 3 or Presentation, Run 1 / 2 / 3, timer 1 min, 5 min or Custom (minutes + seconds). Picking a subtask sets the timer to 1 min, picking Presentation sets it to 5 min (both can be changed by hand).
 - Run screen: team name in the top 25% (black on white), subtask and run below it, then a large countdown that turns amber at 30 s, red at 10 s, and beeps at zero.
 
 It is one file, `index.html`, with no build step and no dependencies (fonts load from Google Fonts and fall back to system fonts when offline).
@@ -34,5 +34,5 @@ Everything is in `index.html`:
 - Colors and fonts: the `:root` tokens at the top of the `<style>` block.
 - Subtask names: `SUBTASKS` at the top of the `<script>` block (and the labels in the setup form).
 - Default timer per subtask: `DEFAULT_MIN` next to `SUBTASKS`.
-- Timer options: the `name="dur"` radio buttons (value is minutes).
+- Timer options: the `name="dur"` radio buttons (value is minutes, `c` = custom). The default custom time is the `value` of `cMin` / `cSec`.
 - Warning thresholds: `WARN_MS` and `STOP_MS` in the script.
