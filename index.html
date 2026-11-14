@@ -81,7 +81,8 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .seg { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
 .seg input { position: absolute; opacity: 0; pointer-events: none; }
 .seg label {
-  display: grid; gap: 2px; align-content: center; min-height: 72px; padding: 12px 14px;
+  display: grid; gap: 2px; align-content: center; justify-items: center; text-align: center;
+  min-height: 72px; padding: 12px 14px;
   border: 2px solid var(--line); border-radius: 10px; background: var(--chip);
   cursor: pointer; user-select: none; -webkit-user-select: none;
   transition: border-color .12s, background-color .12s, color .12s;
@@ -100,6 +101,7 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 }
 .summary b { font-family: var(--f-display); font-size: 18px; }
 .summary .dot { color: var(--line); }
+#sumRunWrap { display: contents; } /* children join the flex row so the gap stays even */
 .start {
   width: 100%; min-height: 64px; border: 0; border-radius: 12px; cursor: pointer;
   background: var(--ink); color: var(--paper);
@@ -112,6 +114,10 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
   border: 1px solid var(--line); border-radius: 4px; background: var(--chip);
 }
 @media (hover: none) { .hint { display: none; } }
+.seg-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.seg .big.word { font-size: 20px; overflow-wrap: anywhere; }
+fieldset[disabled] .seg label { opacity: 0.4; cursor: not-allowed; }
+@media (max-width: 640px) { .seg-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 480px) {
   .seg label { min-height: 64px; padding: 10px; }
   .seg .sub { font-size: 12px; }
@@ -155,6 +161,7 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
   font-size: clamp(30px, 7vh, 84px); font-variant-numeric: tabular-nums;
 }
 .task .of { color: var(--muted); font-weight: 500; }
+.task .val.word { font-size: clamp(26px, 5.5vh, 64px); }
 .task .name { font-size: clamp(14px, 2.2vh, 24px); color: var(--muted); font-weight: 500; }
 
 .band-timer {
@@ -230,7 +237,9 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 
       <fieldset class="field">
         <legend class="label">Subtask</legend>
-        <div class="seg">
+        <div class="seg seg-4">
+          <input type="radio" name="subtask" id="stP" value="p">
+          <label for="stP"><span class="big word">Presentation</span></label>
           <input type="radio" name="subtask" id="st1" value="1" checked>
           <label for="st1"><span class="big">1</span><span class="sub">Proprioception</span></label>
           <input type="radio" name="subtask" id="st2" value="2">
@@ -240,7 +249,7 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
         </div>
       </fieldset>
 
-      <fieldset class="field">
+      <fieldset class="field" id="runField">
         <legend class="label">Run</legend>
         <div class="seg">
           <input type="radio" name="run" id="run1" value="1" checked>
@@ -255,9 +264,9 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
       <fieldset class="field">
         <legend class="label">Timer</legend>
         <div class="seg">
-          <input type="radio" name="dur" id="d1" value="1">
+          <input type="radio" name="dur" id="d1" value="1" checked>
           <label for="d1"><span class="big">1 min</span></label>
-          <input type="radio" name="dur" id="d2" value="2" checked>
+          <input type="radio" name="dur" id="d2" value="2">
           <label for="d2"><span class="big">2 min</span></label>
           <input type="radio" name="dur" id="d5" value="5">
           <label for="d5"><span class="big">5 min</span></label>
@@ -267,11 +276,11 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
       <div class="summary" aria-live="polite">
         <b id="sumTeam">No team yet</b><span class="dot">●</span>
         <span id="sumSub">Subtask 1</span><span class="dot">●</span>
-        <span id="sumRun">Run 1</span><span class="dot">●</span>
-        <span id="sumDur">02:00</span>
+        <span id="sumRunWrap"><span id="sumRun">Run 1</span><span class="dot">●</span></span>
+        <span id="sumDur">01:00</span>
       </div>
 
-      <button type="submit" class="start">Start run</button>
+      <button type="submit" class="start" id="startBtn">Start run</button>
       <p class="hint">On the run screen: <kbd>Space</kbd> pause/resume · <kbd>R</kbd> restart · <kbd>N</kbd> next run · <kbd>E</kbd> edit setup · <kbd>F</kbd> fullscreen</p>
     </form>
   </div>
@@ -283,19 +292,19 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 
   <div class="band-task">
     <div class="task">
-      <span class="tag">Subtask</span>
+      <span class="tag" id="dSubTag">Subtask</span>
       <span class="val" id="dSub">1</span>
       <span class="name" id="dSubName">Proprioception</span>
     </div>
     <div class="task right">
-      <span class="tag">Run</span>
-      <span class="val"><span id="dRun">1</span><span class="of"> / 3</span></span>
-      <span class="name" id="dDur">2 min</span>
+      <span class="tag" id="dRunTag">Run</span>
+      <span class="val" id="dRunVal"><span id="dRun">1</span><span class="of"> / 3</span></span>
+      <span class="name" id="dDur">1 min</span>
     </div>
   </div>
 
   <div class="band-timer">
-    <div class="digits" id="dTime" role="timer" aria-live="off">02:00</div>
+    <div class="digits" id="dTime" role="timer" aria-live="off">01:00</div>
     <div class="status" id="dStatus">Running</div>
     <div class="bar" aria-hidden="true"><div class="fill" id="dBar"></div></div>
   </div>
@@ -312,12 +321,15 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 
 <script>
 (() => {
-  const SUBTASKS = { 1: "Proprioception", 2: "Exteroception", 3: "All-axis rotation" };
+  const SUBTASKS = { 1: "Proprioception", 2: "Exteroception", 3: "All-axis rotation", p: "Presentation" };
+  // Default timer (minutes) applied when a subtask is selected; it can still be changed by hand afterwards.
+  const DEFAULT_MIN = { 1: 1, 2: 1, 3: 1, p: 5 };
+  const isPres = (sub) => sub === "p";
   const WARN_MS = 30000, STOP_MS = 10000;
   const $ = (id) => document.getElementById(id);
   const form = $("setupForm"), setup = $("setup"), run = $("run");
 
-  const S = { team: "", subtask: 1, run: 1, durMs: 120000, remaining: 120000, endAt: 0, running: false, done: false };
+  const S = { team: "", subtask: "1", run: 1, durMs: 60000, remaining: 60000, endAt: 0, running: false, done: false };
   let ticker = 0, audio = null, wakeLock = null, sound = true;
 
   // ---------- storage (per-device convenience only) ----------
@@ -327,7 +339,8 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
   };
 
   // ---------- setup ----------
-  const checked = (name) => Number(form.querySelector(`input[name="${name}"]:checked`).value);
+  const checkedStr = (name) => form.querySelector(`input[name="${name}"]:checked`).value;
+  const checked = (name) => Number(checkedStr(name));
   const setRadio = (name, v) => { const el = form.querySelector(`input[name="${name}"][value="${v}"]`); if (el) el.checked = true; };
   const fmt = (ms) => {
     const s = Math.max(0, Math.ceil(ms / 1000));
@@ -336,12 +349,18 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 
   function updateSummary() {
     const t = $("team").value.trim();
+    const sub = checkedStr("subtask"), pres = isPres(sub);
     $("sumTeam").textContent = t || "No team yet";
-    $("sumSub").textContent = "Subtask " + checked("subtask");
+    $("sumSub").textContent = pres ? "Presentation" : "Subtask " + sub;
     $("sumRun").textContent = "Run " + checked("run");
+    $("sumRunWrap").hidden = pres;
+    $("runField").disabled = pres;
+    $("startBtn").textContent = pres ? "Start presentation" : "Start run";
     $("sumDur").textContent = fmt(checked("dur") * 60000);
     if (t) $("teamError").hidden = true;
   }
+  function applyDefaultTimer() { setRadio("dur", DEFAULT_MIN[checkedStr("subtask")] || 1); }
+  form.querySelectorAll('input[name="subtask"]').forEach((r) => r.addEventListener("change", applyDefaultTimer));
   form.addEventListener("input", updateSummary);
   form.addEventListener("change", updateSummary);
 
@@ -349,13 +368,14 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
   if (saved) $("team").value = saved;
   const savedSub = store.get("rwr-timer-subtask");
   if (savedSub) setRadio("subtask", savedSub);
+  applyDefaultTimer();
   updateSummary();
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
     const team = $("team").value.trim();
     if (!team) { $("teamError").hidden = false; $("team").focus(); return; }
-    S.team = team; S.subtask = checked("subtask"); S.run = checked("run");
+    S.team = team; S.subtask = checkedStr("subtask"); S.run = checked("run");
     S.durMs = checked("dur") * 60000;
     store.set("rwr-timer-team", team); store.set("rwr-timer-subtask", String(S.subtask));
     unlockAudio();
@@ -365,11 +385,18 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 
   // ---------- run screen ----------
   function showRun() {
+    const pres = isPres(S.subtask);
     $("dTeam").textContent = S.team;
-    $("dSub").textContent = S.subtask;
-    $("dSubName").textContent = SUBTASKS[S.subtask];
+    $("dSubTag").textContent = pres ? "Session" : "Subtask";
+    $("dSub").textContent = pres ? "Presentation" : S.subtask;
+    $("dSub").classList.toggle("word", pres);
+    $("dSubName").textContent = pres ? "" : SUBTASKS[S.subtask];
+    $("dSubName").hidden = pres;
+    $("dRunTag").textContent = pres ? "Timer" : "Run";
+    $("dRunVal").hidden = pres;
     $("dRun").textContent = S.run;
     $("dDur").textContent = (S.durMs / 60000) + " min";
+    $("bNext").hidden = pres;
     setup.hidden = true; run.hidden = false;
     enterFullscreen();
     requestWake();
@@ -451,7 +478,7 @@ fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
     const k = e.key.toLowerCase();
     if (k === " " || k === "spacebar") { e.preventDefault(); togglePause(); }
     else if (k === "r") restart();
-    else if (k === "n") nextRun();
+    else if (k === "n" && !isPres(S.subtask)) nextRun();
     else if (k === "e") showSetup();
     else if (k === "f") isFullscreen() ? exitFullscreen() : enterFullscreen();
   });
