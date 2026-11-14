@@ -142,6 +142,16 @@ fieldset[disabled] .seg label { opacity: 0.4; cursor: not-allowed; }
 }
 .custom-row .unit { color: var(--muted); font-weight: 600; }
 .custom-row .colon { font-family: var(--f-digits); font-weight: 700; font-size: 30px; padding-inline: 4px; }
+.pre-row { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 10px; color: var(--ink); }
+.pre-row input[type="checkbox"] { width: 22px; height: 22px; margin: 0; accent-color: var(--accent); cursor: pointer; }
+.pre-row label { font-weight: 500; cursor: pointer; user-select: none; -webkit-user-select: none; }
+.pre-row #preSec {
+  width: 2.6em; padding: 4px 2px; text-align: center; border: 1.5px solid var(--line); border-radius: 6px; background: var(--paper);
+  font-family: var(--f-digits); font-weight: 700; font-size: 18px; font-variant-numeric: tabular-nums;
+}
+.pre-row #preSec:disabled { color: var(--muted); background: var(--chip); }
+.pre-row .unit { color: var(--muted); font-weight: 600; }
+#sumPreWrap { display: contents; }
 @media (max-width: 640px) { .seg-4 { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 @media (max-width: 480px) {
   .seg label { min-height: 64px; padding: 10px; }
@@ -220,6 +230,7 @@ fieldset[disabled] .seg label { opacity: 0.4; cursor: not-allowed; }
 .run.stop .digits { color: var(--stop); }
 .run.stop .fill { background: var(--stop); }
 .run.paused .digits { opacity: 0.35; }
+.run.pre .digits { color: var(--accent); }
 .run.done .band-timer { background: var(--stop); }
 .run.done .digits, .run.done .status { color: var(--stop-ink); opacity: 1; }
 .run.done .bar { background: rgba(255,255,255,0.3); }
@@ -316,6 +327,12 @@ fieldset[disabled] .seg label { opacity: 0.4; cursor: not-allowed; }
           <span class="unit">sec</span>
         </div>
         <p class="error" id="timeError" hidden>Set a custom time above 0:00 to start.</p>
+        <div class="pre-row">
+          <input type="checkbox" id="preOn">
+          <label for="preOn">Countdown before start</label>
+          <input id="preSec" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" value="5" aria-label="Countdown seconds" autocomplete="off">
+          <span class="unit">sec</span>
+        </div>
       </fieldset>
 
       <div class="summary" aria-live="polite">
@@ -323,6 +340,7 @@ fieldset[disabled] .seg label { opacity: 0.4; cursor: not-allowed; }
         <span id="sumSub">Subtask 1</span><span class="dot">●</span>
         <span id="sumRunWrap"><span id="sumRun">Run 1</span><span class="dot">●</span></span>
         <span id="sumDur">01:00</span>
+        <span id="sumPreWrap" hidden><span class="dot">●</span><span id="sumPre">5 s countdown</span></span>
       </div>
 
       <button type="submit" class="start" id="startBtn">Start run</button>
@@ -381,7 +399,8 @@ fieldset[disabled] .seg label { opacity: 0.4; cursor: not-allowed; }
   const $ = (id) => document.getElementById(id);
   const form = $("setupForm"), setup = $("setup"), run = $("run");
 
-  const S = { team: "", subtask: "1", run: 1, durMs: 60000, remaining: 60000, endAt: 0, running: false, done: false };
+  // phase: "pre" = optional countdown before the run, "main" = the run timer itself.
+  const S = { team: "", subtask: "1", run: 1, durMs: 60000, preMs: 0, phase: "main", lastPreSec: null, remaining: 60000, endAt: 0, running: false, done: false };
   let ticker = 0, audio = null, wakeLock = null, sound = true;
 
   // ---------- storage (per-device convenience only) ----------
@@ -410,6 +429,8 @@ fieldset[disabled] .seg label { opacity: 0.4; cursor: not-allowed; }
     $("startBtn").textContent = pres ? "Start presentation" : "Start run";
     $("customRow").hidden = checkedStr("dur") !== "c";
     $("sumDur").textContent = fmt(durMs());
+    $("sumPreWrap").hidden = !$("preOn").checked;
+    $("sumPre").textContent = preSecs() + " s countdown";
     if (t) $("teamError").hidden = true;
     if (durMs() > 0) $("timeError").hidden = true;
   }
@@ -429,6 +450,15 @@ fieldset[disabled] .seg label { opacity: 0.4; cursor: not-allowed; }
   $("dC").addEventListener("change", () => { $("customRow").hidden = false; $("cMin").focus(); });
   const savedCustom = (store.get("rwr-timer-custom") || "").split(":");
   if (savedCustom.length === 2) { $("cMin").value = String(parseInt(savedCustom[0], 10) || 0); $("cSec").value = two(Math.min(59, parseInt(savedCustom[1], 10) || 0)); }
+  // ---------- optional countdown before start (1–60 s) ----------
+  const preSecs = () => Math.min(60, Math.max(1, digits($("preSec")) || 1));
+  const preMs = () => ($("preOn").checked ? preSecs() * 1000 : 0);
+  $("preSec").addEventListener("input", () => { $("preSec").value = $("preSec").value.replace(/\D/g, "").slice(0, 2); $("preOn").checked = true; });
+  $("preSec").addEventListener("focus", () => $("preSec").select());
+  $("preSec").addEventListener("blur", () => { $("preSec").value = String(preSecs()); updateSummary(); });
+  const savedPre = (store.get("rwr-timer-pre") || "").split(":");
+  if (savedPre.length === 2) { $("preOn").checked = savedPre[0] === "1"; $("preSec").value = String(Math.min(60, Math.max(1, parseInt(savedPre[1], 10) || 5))); }
+
   function applyDefaultTimer() { setRadio("dur", DEFAULT_MIN[checkedStr("subtask")] || 1); }
   form.querySelectorAll('input[name="subtask"]').forEach((r) => r.addEventListener("change", applyDefaultTimer));
   form.addEventListener("input", updateSummary);
@@ -449,6 +479,8 @@ fieldset[disabled] .seg label { opacity: 0.4; cursor: not-allowed; }
     S.durMs = durMs();
     if (S.durMs <= 0) { $("timeError").hidden = false; $("cMin").focus(); return; }
     if (checkedStr("dur") === "c") store.set("rwr-timer-custom", digits($("cMin")) + ":" + Math.min(59, digits($("cSec"))));
+    S.preMs = preMs();
+    store.set("rwr-timer-pre", ($("preOn").checked ? "1" : "0") + ":" + preSecs());
     store.set("rwr-timer-team", team); store.set("rwr-timer-subtask", String(S.subtask));
     unlockAudio();
     showRun();
@@ -489,29 +521,46 @@ fieldset[disabled] .seg label { opacity: 0.4; cursor: not-allowed; }
 
   function render() {
     let rem = remainingNow();
-    if (S.running && rem <= 0) {
+    // Countdown finished: hand over to the run timer without losing the overshoot.
+    if (S.running && S.phase === "pre" && rem <= 0) {
+      S.phase = "main"; S.endAt += S.durMs; S.remaining = S.durMs; rem = remainingNow();
+      beep(1175, 0.45, 0);
+    }
+    if (S.running && S.phase === "main" && rem <= 0) {
       S.running = false; S.done = true; S.remaining = 0; rem = 0;
       stopTicker(); finalBeep();
     }
-    $("dTime").textContent = fmt(rem);
-    const frac = S.durMs ? 1 - Math.max(0, rem) / S.durMs : 1;
-    $("dBar").style.width = (Math.min(1, Math.max(0, frac)) * 100).toFixed(2) + "%";
+    const pre = S.phase === "pre";
+    if (pre) {
+      const secs = Math.max(1, Math.ceil(rem / 1000));
+      if (S.running && secs !== S.lastPreSec) { S.lastPreSec = secs; beep(660, 0.12, 0); }
+      $("dTime").textContent = String(secs);
+      $("dBar").style.width = "0%";
+    } else {
+      $("dTime").textContent = fmt(rem);
+      const frac = S.durMs ? 1 - Math.max(0, rem) / S.durMs : 1;
+      $("dBar").style.width = (Math.min(1, Math.max(0, frac)) * 100).toFixed(2) + "%";
+    }
 
+    run.classList.toggle("pre", pre);
     run.classList.toggle("done", S.done);
     run.classList.toggle("paused", !S.running && !S.done);
-    run.classList.toggle("stop", !S.done && rem <= STOP_MS);
-    run.classList.toggle("warn", !S.done && rem > STOP_MS && rem <= WARN_MS);
+    run.classList.toggle("stop", !pre && !S.done && rem <= STOP_MS);
+    run.classList.toggle("warn", !pre && !S.done && rem > STOP_MS && rem <= WARN_MS);
 
-    $("dStatus").textContent = S.done ? "Time’s up" : S.running ? "Running" : "Paused";
+    $("dStatus").textContent = S.done ? "Time’s up" : !S.running ? "Paused" : pre ? "Get ready" : "Running";
     $("bPause").textContent = S.done ? "Run again" : S.running ? "Pause" : "Resume";
-    document.title = S.done ? "Time’s up · " + S.team : fmt(rem) + " · " + S.team;
+    document.title = S.done ? "Time’s up · " + S.team : (pre ? "Starting in " + $("dTime").textContent : fmt(rem)) + " · " + S.team;
   }
 
   function startTicker() { stopTicker(); ticker = setInterval(render, 100); }
   function stopTicker() { if (ticker) clearInterval(ticker); ticker = 0; document.title = "RWR Showcase Timer"; }
 
   function restart() {
-    S.done = false; S.remaining = S.durMs; S.endAt = Date.now() + S.durMs; S.running = true;
+    S.done = false; S.lastPreSec = null;
+    S.phase = S.preMs > 0 ? "pre" : "main";
+    const ms = S.phase === "pre" ? S.preMs : S.durMs;
+    S.remaining = ms; S.endAt = Date.now() + ms; S.running = true;
     startTicker(); render();
   }
   function togglePause() {

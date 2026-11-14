@@ -3,6 +3,7 @@
 Full-screen run timer for the Real World Robotics Task 1 demo day (Sim2Real cube rotation on the ORCA v2 hand).
 
 - Setup screen: team name, Subtask 1 / 2 / 3 or Presentation, Run 1 / 2 / 3, timer 1 min, 5 min or Custom (minutes + seconds). Picking a subtask sets the timer to 1 min, picking Presentation sets it to 5 min (both can be changed by hand).
+- Optional countdown before start: tick "Countdown before start" and set the seconds (1–60, default 5). The run screen then counts down with a beep each second before the timer starts; Restart and Run again repeat it. The setting is remembered on the device.
 - Run screen: team name in the top 25% (black on white), subtask and run below it, then a large countdown that turns amber at 30 s, red at 10 s, and beeps at zero.
 
 It is a static page: `index.html` plus the logos and icons in `assets/`, with no build step and no dependencies (fonts load from Google Fonts and fall back to system fonts when offline).
