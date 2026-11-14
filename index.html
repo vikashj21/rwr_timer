@@ -50,11 +50,13 @@ button, input { font: inherit; color: inherit; }
 /* ---------- Setup ---------- */
 .setup {
   min-height: 100%;
+  /* Centre the form vertically when it fits on screen; taller content just starts at the top and scrolls. */
+  display: grid; align-content: center;
   padding-block: clamp(24px, 6vh, 64px);
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
 }
-.setup-inner { max-width: 760px; margin: 0 auto; display: grid; gap: 32px; }
+.setup-inner { width: 100%; max-width: 760px; margin: 0 auto; display: grid; gap: 32px; }
 /* Setup page is centred: header, labels, typed team name, summary and hint. */
 .setup-head { display: grid; gap: 22px; }
 .brand-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-width: 0; }
@@ -324,7 +326,7 @@ fieldset[disabled] .seg label { opacity: 0.4; cursor: not-allowed; }
       </div>
 
       <button type="submit" class="start" id="startBtn">Start run</button>
-      <p class="hint">On the run screen: <kbd>Space</kbd> pause/resume · <kbd>R</kbd> restart · <kbd>N</kbd> next run · <kbd>E</kbd> edit setup · <kbd>F</kbd> fullscreen</p>
+      <p class="hint">On the run screen: <kbd>P</kbd> pause/resume · <kbd>R</kbd> restart · <kbd>N</kbd> next run · <kbd>E</kbd> edit setup · <kbd>F</kbd> fullscreen</p>
     </form>
   </div>
 </main>
@@ -542,11 +544,14 @@ fieldset[disabled] .seg label { opacity: 0.4; cursor: not-allowed; }
     if (sound) { unlockAudio(); beep(660, 0.12, 0); }
   });
   $("bFs").addEventListener("click", () => (isFullscreen() ? exitFullscreen() : enterFullscreen()));
+  // Drop focus after a tap/click so a later key press can't re-trigger the last button.
+  run.querySelectorAll(".controls button").forEach((b) => b.addEventListener("click", () => b.blur()));
 
   document.addEventListener("keydown", (e) => {
     if (run.hidden || e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key.toLowerCase();
-    if (k === " " || k === "spacebar") { e.preventDefault(); togglePause(); }
+    if (e.repeat) return; // holding a key must not toggle over and over
+    if (k === "p") togglePause();
     else if (k === "r") restart();
     else if (k === "n" && !isPres(S.subtask)) nextRun();
     else if (k === "e") showSetup();

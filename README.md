@@ -18,7 +18,7 @@ It is a static page: `index.html` plus the logos and icons in `assets/`, with no
 
 | Button | Key | Action |
 |---|---|---|
-| Pause / Resume | Space | Pause or resume the countdown |
+| Pause / Resume | P | Pause or resume the countdown |
 | Restart | R | Restart the current run from full time |
 | Next run | N | Back to setup with the run number +1, to pick the next timer |
 | Edit setup | E | Back to setup |
