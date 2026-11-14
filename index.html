@@ -19,10 +19,10 @@
 :root {
   --paper: #ffffff;
   --ink: #0b0c0f;
-  --muted: #5a6072;
-  --line: #d8dbe3;
-  --chip: #f3f5f9;
-  --accent: #1f407a;      /* ETH blue */
+  --muted: #5b606b;
+  --line: #d8dadf;
+  --chip: #f3f4f6;
+  --accent: #3d4450;      /* graphite: a soft dark blue-grey, distinct from the black Start button */
   --accent-ink: #ffffff;
   --warn: #b35900;
   --stop: #c8102e;
@@ -63,18 +63,17 @@ button, input { font: inherit; color: inherit; }
 .lockup { display: flex; align-items: center; gap: clamp(12px, 1.6vw, 20px); min-width: 0; }
 .lockup img { display: block; height: auto; min-width: 0; }
 .lockup .sep { flex: none; width: 1.5px; align-self: stretch; background: var(--ink); opacity: 0.55; }
-.lockup-setup .lk-srl { width: 170px; }
-.lockup-setup .lk-eth { width: 150px; }
-@media (max-width: 480px) { .lockup-setup .lk-srl { width: 120px; } .lockup-setup .lk-eth { width: 104px; } }
-.cube-logo { flex: none; width: clamp(48px, 8vw, 72px); height: auto; }
+.lockup-setup .lk-srl { width: 140px; }
+.lockup-setup .lk-eth { width: 120px; }
+@media (max-width: 480px) { .lockup-setup .lk-srl { width: 104px; } .lockup-setup .lk-eth { width: 88px; } }
+.cube-logo { flex: none; width: clamp(42px, 6vw, 60px); height: auto; }
+/* One-line heading joined by an en dash; on phones the two parts stack and the dash is dropped. */
 .setup h1 {
-  margin: 0; font-family: var(--f-display); font-weight: 700;
-  font-size: clamp(26px, 3.6vw, 32px); line-height: 1.15; text-wrap: balance;
+  margin: 0; text-align: center; font-weight: 700; color: var(--ink);
+  font-family: var(--f-display); font-size: clamp(24px, 4vw, 34px); line-height: 1.2;
 }
-.subhead {
-  margin: 0; font-weight: 600; font-size: 16px; letter-spacing: 0.1em;
-  text-transform: uppercase; color: var(--muted);
-}
+.hl-main, .hl-sub { white-space: nowrap; }
+@media (max-width: 560px) { .hl-main, .hl-sub { display: block; } .hl-sep { display: none; } }
 form { display: grid; gap: 28px; }
 fieldset { border: 0; margin: 0; padding: 0; min-width: 0; }
 .field { display: grid; gap: 10px; }
@@ -260,8 +259,7 @@ fieldset[disabled] .seg label { opacity: 0.4; cursor: not-allowed; }
         <img class="cube-logo" src="assets/hand-cube.png" alt="Real World Robotics">
       </div>
       <div class="head-text">
-        <h1>Real World Robotics</h1>
-        <p class="subhead">Task 1 Demo Day</p>
+        <h1><span class="hl-main">Real World Robotics</span><span class="hl-sep"> – </span><span class="hl-sub">Task 1 Showcase Day</span></h1>
       </div>
     </header>
 
